@@ -25,6 +25,7 @@ Given a query that matches at least one listing, the agent completes all three
 tool calls and returns a fit card — in at least 4 of 5 tries.
 
 **Why this target:**
+My search is a plain keyword match and my query parsing is regex, so some phrasings will miss or parse oddly, and two of the three tools call a model that can occasionally fail. I allow one miss but not more, because a query that matches a listing should work most of the time.
 <!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
@@ -37,6 +38,7 @@ Given a query that matches no listings, the agent stops before calling
 `suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
 
 **Why this target:**
+This path is a plain `if` on an empty list, and the error message is written by my own code, so no model call can make it fail. Any miss would be a real bug in the branch, not bad luck.
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
 
@@ -54,11 +56,10 @@ Given a query that matches no listings, the agent stops before calling
      compares session["selected_item"] against what actually reached
      suggest_outfit is the shape you're after. -->
 
-
+Given a query that matches at least one listing, the `id` of the item that `suggest_outfit` received (read from the trace) equals the `id` in `session["selected_item"]`, and the same holds for `create_fit_card` — in 5 of 5 tries.
 
 **Why this target:**
-
-
+Choosing `search_results[0]` and passing it on is plain code with no model and no randomness, so the same query should give the same result every time. A mismatch would be a wiring bug, such as the wrong list index, not an unlucky run.
 
 ---
 
@@ -75,11 +76,10 @@ Given a query that matches no listings, the agent stops before calling
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-
+Given 5 different matching listings, each fit card has 2 to 4 sentences and contains the listing's exact price (with a $ sign, in the format used in the data) and the listing's platform — in 4 of 5 cards.
 
 **Why this target:**
-
-
+The price and platform come from the prompt, so the model only has to copy them. Sentence count is the likeliest slip because the model follows length instructions loosely and sentences are fuzzy to count, so I allow one miss and will diagnose it.
 
 ---
 
@@ -92,11 +92,10 @@ Given a query that matches no listings, the agent stops before calling
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
 
-
+Given a query that matches a listing and an empty wardrobe, `run_agent` completes with `session["error"]` as `None` and `session["outfit_suggestion"]` containing non-whitespace text, and the fit card is still produced — in 4 of 5 tries.
 
 **Why this target:**
-
-
+The empty-wardrobe branch is a plain `if`, but each try makes two model calls that can occasionally fail or return nothing, so I allow one miss. More than one failure would point to a bug in my code, not model flakiness.
 
 ---
 
