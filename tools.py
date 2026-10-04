@@ -101,9 +101,30 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
-    # TODO: replace this with your implementation
-    return []
+    keywords = _keywords(description)
+    if not keywords:
+        return []
 
+    result = []
+    listings = load_listings()
+    for listing in listings:
+        if max_price is not None and listing['price'] > max_price:
+            continue
+        if not _size_matches(size, listing['size']):
+            continue
+        text = " ".join([listing['title'], listing['description'], listing['category'],
+                        " ".join(listing['style_tags']), " ".join(listing['colors']), listing['brand'] or ''])
+        score = len(keywords & _keywords(text))
+        if score == 0:
+            continue
+        result.append((score, listing))
+
+    result.sort(key=lambda x: x[0], reverse=True)
+    result = result[:config.SEARCH_RESULT_LIMIT]
+
+    matches = [pair[1] for pair in result]
+
+    return matches
 
 # ── Tool 2: suggest_outfit ────────────────────────────────────────────────────
 
