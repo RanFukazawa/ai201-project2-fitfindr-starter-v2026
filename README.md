@@ -41,7 +41,7 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
-
+FitFindr is a thrifting agent. A user describes what they want in plain language, such as "vintage graphic tee under $30, size M", and the agent searches the listings, picks the best match, suggests one or two outfits that pair it with the user's wardrobe, and writes a short social-post caption for the find. If nothing matches, the agent stops early and returns a message naming what the user could change (the price limit, the size, or the keywords) instead of calling the model with nothing.
 
 ---
 
@@ -99,7 +99,7 @@ the model.
   - `outfit` (str): the outfit suggestion string returned by `suggest_outfit`.
   - `new_item` (dict): the listing dict for the item.
 - **Returns:** A string of two to four sentences that reads like a real post rather 
-than a product description. It mentions the item, its price, and its platform once 
+than a product description. It mentions the item, its price (formatted like `$38.00`), and its platform once 
 each, and is specific about the vibe.
 - **When it has nothing:** If `outfit` is empty or whitespace-only, it skips the model 
 call and returns a descriptive message string (e.g. explaining that an outfit is needed 
@@ -129,8 +129,9 @@ it in `session["selected_item"]`, and go on to `suggest_outfit`, then
  
 **Where it lives:** `agent.py::run_agent`
  
-**How the query is parsed:** With regular expressions (no model call), inside 
-`run_agent`. Three patterns run over the lowercased query:
+**How the query is parsed:** With regular expressions (no model call), in the helper 
+`agent.py::_parse_query`, which `run_agent` calls and whose result is stored in 
+`session["parsed"]`. Three patterns run over the lowercased query:
 - `max_price`: a price phrase such as `under $30`, `below 30`, `less than $25`, 
 `up to $40`, or a bare `$30`. The number becomes a float. If no price is found, 
 `max_price` is `None`.
@@ -141,6 +142,7 @@ is `None`. A bare "M" with no word "size" in front of it is not detected.
 and extra punctuation and whitespace are cleaned up. For example, 
 `"vintage graphic tee under $30, size M"` becomes description 
 `"vintage graphic tee"`, size `"M"`, max_price `30.0`.
+
 **What moves through the session:** Fields are filled in this order, and each 
 tool reads its input back out of the session rather than from a local variable:
 1. `query`: the user's raw text, set when the session is created.
@@ -155,6 +157,7 @@ and `wardrobe`).
 and `selected_item`).
 7. `error`: stays `None` on a full run. On the empty-search path it holds the message, 
 and `outfit_suggestion` and `fit_card` stay `None`.
+
 `wardrobe` is set at the start and only read. The loop also calls 
 `trace.check_iterations(count)` on each pass so it stops at `config.MAX_ITERATIONS`.
 
@@ -220,15 +223,15 @@ The hunt for the ultimate everyday denim is officially over thanks to these Vint
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I gave Claude the `create_fit_card` docstring and asked it to write the function.
+- *What came back:* A working function with a guard for a blank `outfit` and a prompt that tells the model to use the listing's real price and platform. When I ran it on the Levi's jeans, though, the caption was written as a seller: it said I had listed the jeans on depop and was clearing out my wardrobe. Nothing in the prompt said who was speaking. The price also printed as `$38.0`.
+- *What I changed:* I added a line saying the person just found the item secondhand and the caption is from the buyer's point of view, and a rule not to open with a greeting. I switched the price to two decimals (`$38.00`) and rewrote criterion 4 to say so, since "the format used in the data" no longer matched. The rerun is better, but the sample caption above still ends with a sentence about listing the item on depop, so the prompt only partly fixed it. I'm treating that as a model-output problem to diagnose in unit 4.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked Claude to help me build `run_agent` following my branch rule. After working through the regex approach with it, I asked for the parser code itself.
+- *What came back:* Two helper functions for `agent.py`, plus the loop. `_parse_query` uses regexes to pull `description`, `size`, and `max_price` out of the query. `_no_results_message` builds the empty-search message from what the user actually asked for, so it only suggests raising the price limit if a price was set and only suggests changing the size if a size was set. `run_agent` calls both, and every tool call reads its input from the session.
+- *What I changed:* I tested `_parse_query` on its own before connecting it, on six queries including one with no price or size and a bare `$20 sweater`. All six came out as expected. Then I ran both paths through `run_agent`: the happy path completed all three tools, and `selected_item` and `search_results[0]` were the same item (`lst_002`). The ballgown query stopped before `suggest_outfit`, left `fit_card` as `None`, and returned a message naming the price and size. I also updated the Planning Loop section so it says parsing lives in `_parse_query`, not inline in `run_agent`.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
