@@ -170,8 +170,15 @@ and `outfit_suggestion` and `fit_card` stay `None`.
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'vintage graphic tee under $30'
 
+Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+Outfit:   Hey gorgeous! That butterfly tee is going to look so cute in your collection. For a classic casual vibe, style it with your baggy straight-leg jeans, dark wash and chunky white sneakers. Layer on your vintage black denim jacket for that cool Y2K edge. Or, try tucking it into your wide-leg khaki trousers and pair with your black combat boots for a sweet mix of textures.
+
+Fit card: Scored this Y2K Baby Tee — Butterfly Print for just $18.00 on depop and I am completely obsessed with the nostalgic vibe. I cannot wait to wear it with baggy jeans and chunky sneakers for an effortless weekend look. It also looks so cute tucked into wide-leg trousers with combat boots for that perfect mix of sweet and edgy textures.
+
+0 model calls this session, 2 served from cache
 ```
 
 **The three tools, tested one at a time**
