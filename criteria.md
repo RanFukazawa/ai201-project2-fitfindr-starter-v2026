@@ -76,7 +76,7 @@ Choosing `search_results[0]` and passing it on is plain code with no model and n
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-Given 5 different matching listings, each fit card has 2 to 4 sentences and contains the listing's exact price (with a $ sign, in the format used in the data) and the listing's platform — in 4 of 5 cards.
+Given 5 different matching listings, each fit card has 2 to 4 sentences and contains the listing's price written as a dollar sign plus two decimals (a listing priced 38.0 appears as "$38.00") and the listing's platform name — in 4 of 5 cards.
 
 **Why this target:**
 The price and platform come from the prompt, so the model only has to copy them. Sentence count is the likeliest slip because the model follows length instructions loosely and sentences are fuzzy to count, so I allow one miss and will diagnose it.

@@ -156,9 +156,62 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    # 1. Get the wardrobe items safely
+    if wardrobe is None:
+        wardrobe = {}
+    wardrobe_items = wardrobe.get('items') or []
 
+    # One line string for new_item
+    item_text = f"""
+    Title: {new_item['title']} 
+    Category: {new_item['category']} 
+    Colors: {', '.join(new_item['colors'])} 
+    Style: {', '.join(new_item['style_tags'])}
+    """
+
+    # 2. Pick the prompt
+    if not wardrobe_items: # no item in wardrobe
+        prompt =  f"""You are a friendly and fashionable thrift stylist.
+
+        The customer is thinking about buying this item:
+        {item_text}
+
+        They haven't shared their wardrobe, so don't refer to clothes they own.
+
+        Suggest one or two general styling ideas for the new item. Also, suggest types of 
+        pieces (like "wide-leg jeans" or "white sneakers"), not specific items.
+
+        Write in plain sentences, no greetings, bullet points or markdown, and keep it under 80 words."""
+    else:
+        lines = []
+        for piece in wardrobe_items:
+            notes_part = f" - {piece['notes']}" if piece['notes'] else ""
+            line = f"{piece['name']} ({piece['category']}), {', '.join(piece['colors'])}{notes_part}"
+            lines.append(line)
+        wardrobe_text = '\n'.join(lines)
+
+        prompt = f"""You are a friendly and fashionable thrift stylist.
+
+        The customer is thinking about buying this item:
+        {item_text}
+
+        Here is what they already have in their wardrobe:
+        {wardrobe_text}
+
+        Suggest one or two simple outfits that use the new item.
+        Only use items from the wardrobe list above, and refer to each item by its name from the list. 
+        Do not invent items they don't have.
+
+        Write in plain sentences, no greetings, bullet points or markdown, and keep it under 80 words."""
+
+    # 3. Call the model once, for either branch
+    response = generate(prompt)
+
+    # 4. Never return empty
+    if not response:
+        response = 'Try pairing this piece with simple basics in neutral colors so it can be the focus of the outfit.'
+
+    return response
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
 
@@ -196,5 +249,39 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    # 1. Guard: nothing to write a caption about
+    if not outfit or not outfit.strip():
+        return ("No fit card yet: there's no outfit suggestion to write about. "
+                "Generate an outfit first, then try again.")
+
+    # 2. Pull the facts the caption must get right
+    title = new_item['title']
+    price = f"${new_item['price']:.2f}"
+    platform = new_item['platform']
+
+    prompt = f"""You write short social media captions for thrift finds.
+
+    The find: {title}
+    Price: {price}
+    Platform: {platform}
+
+    The outfit it's styled in:
+    {outfit.strip()}
+
+    Write a caption the person would post about this find.
+    Sound like a real post, not a product description, and be specific about the vibe.
+    The person just found the item secondhand and is excited to style it, so the caption
+    is from the buyer's point of view, not a seller listing it.
+    Mention the item, the price ({price}), and the platform ({platform}) once each,
+    exactly as written above. Do not make up any other prices or platforms.
+    Write 2 to 4 sentences. No hashtags or emoji.
+    Do not open with a greeting."""
+
+    # 3. Call the model once
+    response = generate(prompt)
+
+    # 4. Never return empty
+    if not response:
+        response = f"Found {title} for {price} on {platform}. Can't wait to style it."
+    
+    return response
