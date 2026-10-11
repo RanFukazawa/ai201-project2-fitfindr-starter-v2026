@@ -225,13 +225,42 @@ The hunt for the ultimate everyday denim is officially over thanks to these Vint
 
 - *What I asked for:* I gave Claude the `create_fit_card` docstring and asked it to write the function.
 - *What came back:* A working function with a guard for a blank `outfit` and a prompt that tells the model to use the listing's real price and platform. When I ran it on the Levi's jeans, though, the caption was written as a seller: it said I had listed the jeans on depop and was clearing out my wardrobe. Nothing in the prompt said who was speaking. The price also printed as `$38.0`.
-- *What I changed:* I added a line saying the person just found the item secondhand and the caption is from the buyer's point of view, and a rule not to open with a greeting. I switched the price to two decimals (`$38.00`) and rewrote criterion 4 to say so, since "the format used in the data" no longer matched. The rerun is better, but the sample caption above still ends with a sentence about listing the item on depop, so the prompt only partly fixed it. I'm treating that as a model-output problem to diagnose in unit 4.
+- *What I changed:* I added a line saying the person just found the item secondhand and the caption is from the buyer's point of view, and a rule not to open with a greeting. I switched the price to two decimals (`$38.00`) and rewrote criterion 4 to say so, since "the format used in the data" no longer matched. The rerun is better, but the sample caption above still ends with a sentence about listing the item on depop, so the prompt only partly fixed it. In unit 4's before and after runs, none of the 90 fit cards contained seller phrases like "listed them", "clearing", "selling", "listing it", or "good home", so the
+buyer's-voice line appears to have held. That was a search for those five phrases, not a full read of every card.
 
 **Moment 2**
 
 - *What I asked for:* I asked Claude to help me build `run_agent` following my branch rule. After working through the regex approach with it, I asked for the parser code itself.
 - *What came back:* Two helper functions for `agent.py`, plus the loop. `_parse_query` uses regexes to pull `description`, `size`, and `max_price` out of the query. `_no_results_message` builds the empty-search message from what the user actually asked for, so it only suggests raising the price limit if a price was set and only suggests changing the size if a size was set. `run_agent` calls both, and every tool call reads its input from the session.
 - *What I changed:* I tested `_parse_query` on its own before connecting it, on six queries including one with no price or size and a bare `$20 sweater`. All six came out as expected. Then I ran both paths through `run_agent`: the happy path completed all three tools, and `selected_item` and `search_results[0]` were the same item (`lst_002`). The ballgown query stopped before `suggest_outfit`, left `fit_card` as `None`, and returned a message naming the price and size. I also updated the Planning Loop section so it says parsing lives in `_parse_query`, not inline in `run_agent`.
+
+**Moment 3 (unit 4)**
+
+- *What I asked for:* I pasted my `run_agent` after wiring in the MCP call and asked
+  Claude what to fix.
+- *What came back:* Three problems. The import pointed at `mcp_server` instead of
+  `mcp_client`, and `parsed` was undefined because its line was commented out. The
+  third was quieter: `results = session["search_results"]` ran before
+  `results = call_tool(...)`, so the session kept the empty list from `new_session`
+  while the local variable held the real results. The run looked fine because the
+  rest of the code used the local variable.
+- *What I changed:* I fixed the import, uncommented `parsed`, and assigned
+  `session["search_results"] = call_tool(...)` first, with `results` as an alias
+  afterwards. I checked it with a one-liner printing `len(session["search_results"])`
+  and the selected id. It printed `10 lst_002`, where the bug would have shown 0.
+
+**Moment 4 (unit 4)**
+
+- *What I asked for:* Help fixing the greeting defect from my diagnosis, then I
+  pasted my edited prompts.
+- *What came back:* Claude suggested a positive instruction about how to begin
+  instead of repeating "no greetings". It also spotted that I'd put the new line in
+  the empty-wardrobe prompt, which was my control, not the wardrobe prompt, and that
+  a stray fourth quote mark would have been a `SyntaxError`.
+- *What I changed:* I moved the sentence to the wardrobe prompt, fixed the quotes,
+  and wrote my threshold (5 of 35 or fewer) before running. Greetings went from 16
+  of 35 to 0 of 35. All 35 outfits now start with "Pair", because the model took the
+  first example verb literally.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
@@ -525,8 +554,38 @@ jacket query, and that difference is not from this edit.
 <!-- For each criterion still missed: what you'd do, and why you stopped where
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
+No criterion was missed in either run, so nothing below is a missed target. These
+are problems I found that the five criteria don't catch.
 
-
+- **Every example-wardrobe outfit now starts with "Pair."** 35 of 35, up from 7 of
+  35. I'd ask for a verb without naming one, or list several verbs, then re-count
+  the openers. I stopped because the milestone allows one change and I'd already
+  made mine.
+- **The price sometimes comes out in words** ("forty two dollars"): 2 of 45 cards
+  before, 1 of 45 after, both on the denim jacket query. `create_fit_card` only
+  falls back on a blank reply and never checks that the exact `$xx.xx` is in it. I'd
+  add that check with one retry. I didn't, because at about 4% a single re-run
+  couldn't show whether it worked.
+- **Criterion 3 measures the log, not what the tool received.** The id in the trace
+  comes from the same variable that's passed to the tool, so they can't disagree. To
+  tighten it, I'd record the id inside `suggest_outfit` and compare that with the
+  session.
+- **Criteria 1 and 2 each ran one query.** Criterion 1 never tested the phrasing
+  misses that justified its 4 of 5 (plurals, a size, "levis" without the
+  apostrophe). Criterion 2 tried one impossible query. I'd add more phrasings to
+  `scenarios.py`.
+- **A failed MCP call isn't handled.** Only the two model steps are inside
+  `try/except ModelUnavailable`. If `mcp_server.py` can't start, `call_tool` raises
+  `MCPError` from the search step and the user sees a stack trace. I'd wrap that
+  call and put a message in `session["error"]`. I only triggered the three failures
+  the milestone named.
+- **Rate-limit exhaustion isn't handled.** After five retries `generate()` raises
+  `RuntimeError`, which my handler doesn't catch.
+- **Only `search_listings` is on MCP.** The two model tools are still direct calls,
+  which is what the milestone asked for. Moving them would reset `generate.py`'s
+  pacing counters on every call, because each call starts a fresh server process.
+- **Query parsing has limits:** a bare "M" without the word "size" isn't detected,
+  `size US 9` captures only `US`, and `W30 L30` only matches as the full string.
 
 <!-- ═════════════════════════════════════════════════════════════════════
 
