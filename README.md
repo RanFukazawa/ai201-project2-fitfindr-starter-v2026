@@ -315,20 +315,65 @@ that produced it:
 **Happy path**
 
 ```
-
+$ python app.py ask 'vintage graphic tee under $30' --trace
+[1] parse_query
+     in:  vintage graphic tee under $30
+     out: {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+[2] search_listings (via MCP)
+     in:  {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+     out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+     →    10 match(es)
+[3] selected_item
+     out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[4] suggest_outfit
+     in:  id=lst_002 Y2K Baby Tee — Butterfly Print
+     out: Hey gorgeous! That butterfly tee is going to look so cute in your collection. For a classic casual vibe, style…
+[5] create_fit_card
+     in:  id=lst_002 Y2K Baby Tee — Butterfly Print
+     out: Scored this Y2K Baby Tee — Butterfly Print for just $18.00 on depop and I am completely obsessed with the nost…
 ```
 
 **Empty search**
 
 ```
+$ python app.py ask 'designer ballgown size XXS under $5'
+[1] parse_query
+     in:  designer ballgown size XXS under $5
+     out: {'description': 'designer ballgown', 'size': 'XXS', 'max_price': 5.0}
+[2] search_listings (via MCP)
+     in:  {'description': 'designer ballgown', 'size': 'XXS', 'max_price': 5.0}
+     out: [] (empty)
+     →    0 match(es)
+[3] branch
+     →    search returned []: stopping before suggest_outfit
 
+No listings matched 'designer ballgown'. Try to raise your price limit above $5.00, or drop or change the size (XXS), or use broader keywords.
+```
+
+**Model unavailable (bad key, extra)**
+
+```
+$ AI201_CACHE=0 python app.py ask 'braided leather belt under $20'
+[1] parse_query
+     in:  braided leather belt under $20
+     out: {'description': 'braided leather belt', 'size': None, 'max_price': 20.0}
+[2] search_listings (via MCP)
+     in:  {'description': 'braided leather belt', 'size': None, 'max_price': 20.0}
+     out: 1 items: Leather Belt — Brown, Braided
+     →    1 match(es)
+[3] selected_item
+     out: Leather Belt — Brown, Braided ($12.0, thredUp)
+[4] model unavailable
+     →    model call failed: stopping, no outfit or fit card
+
+I found Leather Belt — Brown, Braided ($12.00 on thredUp), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.
 ```
 
 **On the MCP move:** <!-- what changed in your code, and whether anything
 behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
-
+In `run_agent`, I replaced the direct call `search_listings(description, size, max_price)` with `call_tool("search_listings", {...})`, imported from `mcp_client.py`. I registered the same function in `mcp_server.py` with typed inputs matching my Tool Inventory. Nothing behaved differently afterwards. The call returned the same list of listing dicts, and the tee query still selected `lst_002` first, as it did with the direct call. The empty search came back as `[]`, not `None`, so the branch still fired and stopped before `suggest_outfit`. The only visible change is the trace line, which now reads `search_listings (via MCP)`.
 
 
 ---

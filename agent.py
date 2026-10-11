@@ -182,20 +182,31 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     session["selected_item"] = results[0]
     item = session["selected_item"]
     trace.step("selected_item", returned=item) 
+    
+    try:
+        # Outfit
+        count += 1
+        trace.check_iterations(count)
+        session["outfit_suggestion"] = suggest_outfit(item, session["wardrobe"])
+        trace.step("suggest_outfit", inputs=f"id={item['id']} {item['title']}", 
+                returned=session["outfit_suggestion"])
 
-    # Outfit
-    count += 1
-    trace.check_iterations(count)
-    session["outfit_suggestion"] = suggest_outfit(item, session["wardrobe"])
-    trace.step("suggest_outfit", inputs=f"id={item['id']} {item['title']}", 
-               returned=session["outfit_suggestion"])
-
-    # Fit card
-    count += 1
-    trace.check_iterations(count)
-    session["fit_card"] = create_fit_card(session["outfit_suggestion"], item)
-    trace.step("create_fit_card", inputs=f"id={item['id']} {item['title']}", 
-               returned=session["fit_card"])
+        # Fit card
+        count += 1
+        trace.check_iterations(count)
+        session["fit_card"] = create_fit_card(session["outfit_suggestion"], item)
+        trace.step("create_fit_card", inputs=f"id={item['id']} {item['title']}", 
+                returned=session["fit_card"])
+    
+    except ModelUnavailable as exc:
+        session["error"] = (
+            f"I found {item['title']} (${item['price']:.2f} on {item['platform']}), "
+            f"but couldn't reach the model to write the outfit and caption. {exc} "
+            f"Once that's fixed, run the same query again."
+        )
+        trace.step("model unavailable",
+                   note="model call failed: stopping, no outfit or fit card")
+        return session 
 
     return session
 
