@@ -35,18 +35,48 @@ SCENARIOS = [
         "wardrobe": "empty",
         "criterion": None,
     },
-    # TODO: add what your criteria 3, 4 and 5 need.
-    #
-    # Set "criterion" to the number in criteria.md that the scenario tests.
-    # "criterion": None means a diagnostic run — useful to have, but it isn't
-    # one of your five, and run_eval.py marks it as such in the table.
-    #
-    # For a state criterion, any normal query works — what you're checking is
-    # what ends up in the session, not what the user typed.
-    #
-    # For a fit-card criterion, you probably want the SAME query listed more
-    # than once, or several different items, depending on what your criterion
-    # actually says.
+    {
+        "name": "state: same item reaches both tools",
+        "query": "graphic hoodie",
+        "wardrobe": "example", 
+        "criterion": 3
+    },
+    {
+        "name": "fit card 1: levi's jeans",
+        "query": "levi's jeans",
+        "wardrobe": "example", 
+        "criterion": 4
+    },
+    {
+        "name": "fit card 2: flannel shirt",
+        "query": "flannel shirt",
+        "wardrobe": "example", 
+        "criterion": 4
+    },
+    {   
+        "name": "fit card 3: corduroy pants",
+        "query": "corduroy pants",
+        "wardrobe": "example", 
+        "criterion": 4
+    },
+    {
+        "name": "fit card 4: braided leather belt",
+        "query": "braided leather belt",
+        "wardrobe": "example", 
+        "criterion": 4
+    },
+    {
+        "name": "fit card 5: y2k baby tee",
+        "query": "y2k baby tee",
+        "wardrobe": "example", 
+        "criterion": 4
+    },
+    {   
+        "name": "empty wardrobe completes",
+        "query": "denim jacket under $50",
+        "wardrobe": "empty", 
+        "criterion": 5
+    },
 ]
 
 WARDROBES = ("example", "empty")

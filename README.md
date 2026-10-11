@@ -253,18 +253,85 @@ The hunt for the ultimate everyday denim is officially over thanks to these Vint
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. A matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. An impossible query stops before the second tool | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. The item in the session matches the item passed on | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 4. Fit card: 2-4 sentences, exact $xx.xx price, platform | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. Empty wardrobe still completes with advice and a fit card | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
-```
+Source for all blocks: `results/run_2026-10-10_2149_before.md`, written by
+`run_eval.py::main`. Each try ran `agent.py::run_agent`; the trace lines come
+from its `trace.step()` calls, and the fit card text from `tools.py::create_fit_card`.
+
+**Criterion 1: matching query completes (try 1)**
 
 ```
+[1] parse_query
+      in:  vintage graphic tee under $30
+      out: {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+[2] search_listings (via MCP)
+      in:  {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+      →    10 match(es)
+[3] selected_item
+      out: id=lst_002 Y2K Baby Tee — Butterfly Print
+[4] suggest_outfit
+      in:  id=lst_002 Y2K Baby Tee — Butterfly Print
+      out: You are going to look so cute in that baby tee! Pair it with your baggy straight-leg jeans, dark wash and step…
+[5] create_fit_card
+      in:  id=lst_002 Y2K Baby Tee — Butterfly Print
+      out: Found this absolute dream of a Y2K Baby Tee — Butterfly Print while scrolling on depop and I am obsessed. It w…
+```
+
+**Criterion 2: impossible query stops early (try 1)**
+
+```
+[1] parse_query
+      in:  designer ballgown size XXS under $5
+      out: {'description': 'designer ballgown', 'size': 'XXS', 'max_price': 5.0}
+[2] search_listings (via MCP)
+      in:  {'description': 'designer ballgown', 'size': 'XXS', 'max_price': 5.0}
+      out: [] (empty)
+      →    0 match(es)
+[3] branch
+      →    search returned []: stopping before suggest_outfit
+
+stopped early: yes — No listings matched 'designer ballgown'. Try to raise your price limit above $5.00, or drop or change the size (XXS), or use broader keywords.
+```
+
+**Criterion 3: same item reaches both tools (try 1, query `graphic hoodie`)**
+
+```
+[3] selected_item
+      out: id=lst_015 Vintage Graphic Hoodie — Faded Black
+[4] suggest_outfit
+      in:  id=lst_015 Vintage Graphic Hoodie — Faded Black
+[5] create_fit_card
+      in:  id=lst_015 Vintage Graphic Hoodie — Faded Black
+```
+
+**Criterion 4: fit card format (try 1 of row 4: the Levi's jeans scenario)**
+
+```
+Finally scored the holy grail vintage Levi's 501 jeans on depop for just $38.00 and I am honestly never taking them off. They have that exact broken-in medium wash I have been hunting for forever. Already planning to wear them tucked into my favorite white tank with chunky sneakers today and then switch to an oversized crewneck and combat boots tomorrow.
+```
+
+Checked with `check_cards.py`: 3 sentences, price `$38.00` present, platform `depop` present.
+
+**Criterion 5: empty wardrobe completes (try 1, query `denim jacket under $50`)**
+
+```
+Outfit suggestion:
+A light wash cropped denim jacket is such a versatile staple for your wardrobe. For an easy everyday streetwear look, throw it on over a slip dress and pair it with chunky platform sneakers. If you want a more vintage vibe, layer it with a graphic tee and high waisted wide leg trousers, finishing the outfit with some retro canvas sneakers.
+
+Fit card:
+I finally tracked down this Denim Jacket — Light Wash, Cropped on poshmark for $42.00 and I am already obsessed with it. I cannot wait to throw it on over a slip dress with chunky platform sneakers for an easy everyday streetwear look. It is seriously going to be my most worn piece this season.
+```
+
+Note: in the denim jacket query, try 5 of both denim scenarios wrote the price in words ("forty two dollars" and "forty-two dollars") instead of `$42.00`. That doesn't change any verdict, because criterion 4's five listings all passed and criterion 5 doesn't check the price format. I'm keeping it as a finding for the diagnosis.
 
 ---
 

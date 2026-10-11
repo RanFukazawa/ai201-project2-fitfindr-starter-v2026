@@ -181,7 +181,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
     session["selected_item"] = results[0]
     item = session["selected_item"]
-    trace.step("selected_item", returned=item) 
+    trace.step("selected_item", returned=f"id={item['id']} {item['title']}") 
     
     try:
         # Outfit
