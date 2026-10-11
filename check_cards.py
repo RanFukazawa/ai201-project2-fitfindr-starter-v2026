@@ -1,7 +1,8 @@
 import re
+import sys
 from pathlib import Path
 
-RESULTS = sorted(Path("results").glob("run_*_before.md"))[-1]
+RESULTS = Path(sys.argv[1]) if len(sys.argv) > 1 else sorted(Path("results").glob("run_*_before.md"))[-1]
 text = RESULTS.read_text(encoding="utf-8")
 body = text.split("## What actually happened", 1)[1]
 

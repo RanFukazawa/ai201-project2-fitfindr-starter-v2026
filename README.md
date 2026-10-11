@@ -462,25 +462,60 @@ In `run_agent`, I replaced the direct call `search_listings(description, size, m
 
      `python run_eval.py --label after` -->
 
-**What I changed:**
+**What I changed:** In `tools.py::suggest_outfit`, I added one sentence to the
+wardrobe prompt (the `else` branch only): "Start the first sentence with a verb
+such as 'Pair' or 'Layer'." The line before it already said "no greetings", and I
+left that in. I did not touch the empty-wardrobe prompt, so it acted as a control.
 
-**Which failure it was meant to fix:**
+**Which failure it was meant to fix:** Greetings in the outfit text (the model's
+output). In the before run, 16 of 35 outfits for the example wardrobe opened with
+a greeting such as "Hey babe", against 0 of 10 for the empty wardrobe. Both
+prompts said "no greetings", so the model ignored an explicit instruction, mostly
+in the wardrobe prompt.
+
+**Threshold, set before the after run:** I will call this change helped if
+example-wardrobe greetings drop from 16 of 35 to 5 of 35 or fewer, and
+empty-wardrobe greetings stay at 0 of 10. A greeting means the outfit starts with
+`hey`, `hi`, `hello`, or `yo`. 6 to 9 would be partial or inconclusive, and 10 or
+more would be no clear effect.
 
 ### Run Log — After
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. A matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. An impossible query stops before the second tool | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. The item in the session matches the item passed on | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 4. Fit card: 2-4 sentences, exact $xx.xx price, platform | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. Empty wardrobe still completes with advice and a fit card | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+
+| Count over the whole run | Before | After |
+|---|---|---|
+| Example-wardrobe outfits opening with a greeting | 16 of 35 | 0 of 35 |
+| Empty-wardrobe outfits opening with a greeting (control) | 0 of 10 | 0 of 10 |
+| Example-wardrobe outfits starting with "Pair" | 7 of 35 | 35 of 35 |
+| Fit cards missing the exact price | 2 of 45 | 1 of 45 |
+| Fit cards outside 2-4 sentences | 0 of 45 | 0 of 45 |
+| Fallback sentences used | 0 | 0 |
 
 **Did it help, and how do I know:**
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
-
+Yes, on the failure I targeted, with a side effect. I set the threshold before the
+run: helped if example-wardrobe greetings dropped from 16 of 35 to 5 of 35 or fewer,
+with the empty wardrobe staying at 0 of 10. After the change, greetings were 0 of 35
+and the empty wardrobe stayed at 0 of 10 (counts from `compare_runs.py`, same rule
+as before: the outfit starts with hey, hi, hello, or yo). All five criteria were MET
+again, so nothing regressed. The prompt already said "no greetings" before and the
+model ignored it, so a concrete instruction about how to begin worked where a ban did
+not. The side effect: all 35 example-wardrobe outfits now start with "Pair", where
+before the openers varied. The model most likely took my first example verb too
+literally, so I traded one defect for a uniform opener. This does not test my other
+hypothesis, that the persona and the owned-item list invite the chatty voice, because
+I changed neither. The price written in words ("forty two dollars") is not fixed: it
+appeared in 1 of 45 cards after the change and 2 of 45 before, both on the denim
+jacket query, and that difference is not from this edit.
 
 
 ---

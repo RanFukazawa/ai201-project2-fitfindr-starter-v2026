@@ -202,7 +202,8 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         Only use items from the wardrobe list above, and refer to each item by its name from the list. 
         Do not invent items they don't have.
 
-        Write in plain sentences, no greetings, bullet points or markdown, and keep it under 80 words."""
+        Write in plain sentences, no greetings, bullet points or markdown, and keep it under 80 words. 
+        Start the first sentence with a verb such as 'Pair' or 'Layer'."""
 
     # 3. Call the model once, for either branch
     response = generate(prompt)
