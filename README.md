@@ -355,14 +355,24 @@ Note: in the denim jacket query, try 5 of both denim scenarios wrote the price i
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | A matching query completes all three tools | 4 of 5 | MET (5/5) | All five tries ran all five trace steps and produced a fit card. None contained a fallback phrase. |
+| 2 | An impossible query stops before the second tool | 5 of 5 | MET (5/5) | All five traces end at `branch`, with no `suggest_outfit` step and a message naming the price, size, and keywords. |
+| 3 | The item in the session matches the item passed on | 5 of 5 | MET (5/5) | In all five tries, `id=lst_015` is on the selected-item, `suggest_outfit`, and `create_fit_card` lines. |
+| 4 | Fit card: 2-4 sentences, exact $xx.xx price, platform | 4 of 5 | MET (5/5) | The first run of each of the five fit-card scenarios had 2 to 4 sentences, the exact price, and the platform (checked with `check_cards.py`). |
+| 5 | Empty wardrobe still completes with advice and a fit card | 4 of 5 | MET (5/5) | All five tries completed with an outfit and a fit card, and none contained a fallback phrase. |
 
 **Diagnoses**
 
+I missed no criterion, so there is no miss to diagnose. I'd rather be honest about how much that says.
+
+*How strong the tests were.* Criterion 3 is the weakest. The id printed in the trace comes from the same `item` variable that is passed to the tool, so the two can't disagree unless the trace line itself is edited. It measures the log, not what the tool received, and a wiring bug elsewhere would still pass. If I tightened one criterion, it would be this one: have `suggest_outfit` itself record the `id` it received and compare that with the session. Criterion 4's target of 4 of 5 was lower than the agent's behavior: all 45 fit cards in the run had 2 to 4 sentences, so the sentence-count slip I predicted never happened. Criterion 1 ran one query five times, so it never tested the reason I gave for allowing a miss (some phrasings won't match). Criterion 2 ran one impossible query through plain code, so all five tries were identical by construction.
+
+*What the outputs show beyond the five criteria.* Reading all 45 tries turned up two defects. I think they are one pattern.
+
+1. **Greetings in outfit text (the model's output).** 16 of 35 outfits for the example wardrobe opened with a greeting such as "Hey babe" or "Hey bestie". 0 of 10 for the empty wardrobe did. Both prompts say "no greetings", so the model ignored an explicit instruction, and mostly in one prompt. My hypothesis, not tested: the wardrobe prompt lists pieces the customer owns and calls them "the customer", which may invite a chatty "Hey babe, you need these" voice that the general prompt doesn't.
+2. **The price written in words (the model's output).** 2 of 45 fit cards wrote "forty two dollars" and "forty-two dollars" instead of `$42.00`. Both were try 5 of the denim jacket query. The prompt says to use the price exactly as written, but the code never checks that the reply contains it. `create_fit_card` only substitutes its fallback when the reply is blank. This didn't change a verdict, because the denim query sits under criterion 5, which doesn't check price format, and criterion 4's five listings all passed.
+
+*Pattern.* Both defects are the model not following an instruction in its own output, and the code has nothing behind the prompt to catch it. The tools and the loop's branch worked, and the session held the right item every time. The weak point is trusting the model's reply, not any step in my code.
 
 
 ---
