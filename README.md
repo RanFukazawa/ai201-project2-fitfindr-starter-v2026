@@ -628,7 +628,7 @@ are problems I found that the five criteria don't catch.
 
 ---
 
-## Capstone
+### Capstone
 
 **What This Extends**
 
@@ -645,27 +645,178 @@ Out of scope:
 
 **Running It**
 
-TODO: Path B (local with logs), one line saying so, and a pointer to `RUNNING.md`. If I try to host it and switch, say so here.
+Path B, local with logs. I did not try to host it. The service runs on my machine from one command, `PORT=5001 python serve.py` (macOS reserves port 5000 for AirPlay Receiver, so I use 5001). The exact command, the environment it needs and a test request are in [RUNNING.md](RUNNING.md). It only calls the Gemini API and loads no local model, so there are no model files to download.
 
 **Instrumentation**
 
-TODO: what each log record holds (timestamp, input, output, duration, error field, and anything else), then at least ten entries pasted as text, plus at least one failed run.
+Every request to `/ask` writes one JSON line to `logs/runs.jsonl`, written by `serve.py::log_run` (and echoed to the console). What each record holds:
+
+- `completed` and `stopped` records: `timestamp` (UTC), `status`, `query`, `selected_id`, `output` (the fit card, or null), `error` (the user-facing message, or null), `model_calls`, `prompt_tokens`, `output_tokens`, and `seconds` (time inside `run_agent`, measured with `time.perf_counter()` while holding the lock). `completed` means the fit card was written. `stopped` means `run_agent` returned with `session["error"]` set, which covers an empty search, an unreachable MCP server, a bad key and an exhausted rate limit.
+- `rejected` records (a request with no query, answered with a 400): `timestamp`, `status` and `error` only. No query was sent, so there is none to record.
+- `crashed` records (an exception escaped `run_agent`, answered with a 500): `timestamp`, `status`, `query`, `error` as `ExceptionType: message`, and `seconds`. No `crashed` record appeared in any run.
+
+`model_calls` and the token counts are the difference in `generate.py`'s module counters before and after the run. That is only accurate because `serve.py` runs one request at a time.
+
+Two limits of this log. All handled failures are logged as `stopped`, so the log alone cannot say whether a stopped run was an empty search, an MCP failure or a rate limit without reading `error` (there is no `error_type` field). And the log stores the user-facing message, not the exception text: the MCP exception text (`unhandled errors in a TaskGroup`) only appears in the trace.
+
+An earlier version of my instrumentation was itself a failure shown only as an absence. I imported the `generate()` function instead of the `generate` module in `serve.py`, so reading the call counters raised an `AttributeError` before the `try` block. Two requests returned a 500 and wrote no log record at all. I found it from the server's traceback, not from the log.
+
+Ten entries from `logs/runs.jsonl` (uncached runs, `AI201_CACHE=0`; the first line of the file, a cache hit with zero tokens, is left out):
+
+```
+{"timestamp": "2026-11-16T06:39:20+00:00", "status": "completed", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": "I still cannot believe I scored this Y2K Baby Tee — Butterfly Print for only $18.00 on depop. It instantly unlocked the ultimate off duty model nostalgia. I am so ready to live in this look all season long.", "error": null, "model_calls": 2, "prompt_tokens": 553, "output_tokens": 100, "seconds": 3.31}
+{"timestamp": "2026-11-16T06:39:23+00:00", "status": "completed", "query": "90s track jacket in size M", "selected_id": "lst_004", "output": "Scored this amazing 90s Track Jacket — Navy/White Stripe on poshmark for only $45.00 and I am already obsessed. It gives off the absolute best effortless nineties streetwear vibe whether I throw it over a simple tank or layer it up. Can't wait to wear this piece on repeat all season long.", "error": null, "model_calls": 2, "prompt_tokens": 579, "output_tokens": 141, "seconds": 2.24}
+{"timestamp": "2026-11-16T06:39:25+00:00", "status": "completed", "query": "silk slip dress in midi length under $40", "selected_id": "lst_013", "output": "I am still not over scoring this gorgeous 90s Silk Slip Dress — Floral, Midi Length for just $30.00 while browsing depop. Styling it with an oversized sweatshirt and chunky sneakers gives off the most effortless contrast. Honestly, building out dreamy outfits secondhand is becoming my entire personality.", "error": null, "model_calls": 2, "prompt_tokens": 583, "output_tokens": 131, "seconds": 2.09}
+{"timestamp": "2026-11-16T06:39:27+00:00", "status": "completed", "query": "denim jacket under $50", "selected_id": "lst_007", "output": "Finally tracked down the ultimate light wash, cropped Denim Jacket on Poshmark for just $42.00. I am so obsessed with how it looks layered over an oversized grey crewneck and wide-leg khakis for that effortless streetwear vibe. It is honestly the only piece missing from my transitional wardrobe rotation right now.", "error": null, "model_calls": 2, "prompt_tokens": 572, "output_tokens": 141, "seconds": 2.33}
+{"timestamp": "2026-11-16T06:40:41+00:00", "status": "completed", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": "I cannot believe I scored this Y2K Baby Tee — Butterfly Print on depop for only $18.00. I am so excited to style it with baggy straight-leg jeans, chunky white sneakers, and a brown leather belt for the ultimate nostalgic look. When it gets chilly, I am just going to throw on my vintage black denim jacket to finish the outfit.", "error": null, "model_calls": 2, "prompt_tokens": 558, "output_tokens": 132, "seconds": 3.35}
+{"timestamp": "2026-11-16T06:40:43+00:00", "status": "completed", "query": "90s track jacket in size M", "selected_id": "lst_004", "output": "Just scored this vintage 90s Track Jacket — Navy/White Stripe on Poshmark for $45.00 and I am already obsessed with it. I cannot wait to throw it on over a white ribbed tank with baggy jeans and chunky sneakers for the ultimate effortless sporty vibe. It also looks so good paired with wide-leg trousers and combat boots for a cool streetwear contrast.", "error": null, "model_calls": 2, "prompt_tokens": 584, "output_tokens": 156, "seconds": 2.23}
+{"timestamp": "2026-11-16T06:40:46+00:00", "status": "completed", "query": "silk slip dress in midi length under $40", "selected_id": "lst_013", "output": "Stumbled across the ultimate 90s Silk Slip Dress — Floral, Midi Length while scrolling through depop and honestly could not hit buy fast enough for just $30.00. I am so ready to throw an oversized crewneck right over it with chunky sneakers for that effortless grunge look, or lean into total 90s romance with a vintage denim jacket and combat boots. Finding pieces that transition this easily between sweet and edgy is literally the best feeling.", "error": null, "model_calls": 2, "prompt_tokens": 579, "output_tokens": 160, "seconds": 2.96}
+{"timestamp": "2026-11-16T06:41:40+00:00", "status": "completed", "query": "denim jacket under $50", "selected_id": "lst_007", "output": "Scored this light wash, cropped Denim Jacket on Poshmark for only $42.00 and I am obsessed. I am already planning to lean into the ultimate double denim look with baggy dark wash jeans or throw it over an oversized crewneck for a grungier streetwear vibe. Finding pieces this versatile secondhand is honestly the best feeling.", "error": null, "model_calls": 2, "prompt_tokens": 566, "output_tokens": 139, "seconds": 43.59}
+{"timestamp": "2026-11-16T06:39:25+00:00", "status": "stopped", "query": "platform sneakers size 8", "selected_id": null, "output": null, "error": "No listings matched 'platform sneakers'. Try to drop or change the size (8), or use broader keywords.", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.44}
+{"timestamp": "2026-11-16T06:42:03+00:00", "status": "stopped", "query": "designer ballgown size XXS under $5", "selected_id": null, "output": null, "error": "No listings matched 'designer ballgown'. Try to raise your price limit above $5.00, or drop or change the size (XXS), or use broader keywords.", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.55}
+```
+
+The 43.59 second entry (the eighth line) is an outlier: every other uncached run took between 1.99 and 3.35 seconds. I did not capture the console output for that request, so I cannot confirm why. A real rate-limit pushback with a retry wait, like the one I saw later in trial 2 of the test, would produce this shape.
+
+Failed runs. A rejected request (no query in the body, answered with a 400), from the real server:
+
+```
+{"timestamp": "2026-11-16T06:38:05+00:00", "status": "rejected", "error": "no query in the request body"}
+```
+
+Two simulated failures from capstone trial 1 (`results/capstone_trial_1_log.jsonl`, written by `serve.py::log_run` while `capstone_eval.py` injected the fault). The first is an MCP search failure and the second a rate limit that ran out of retries. In the second, `seconds` is 0.45 because the harness records the retry sleeps without performing them, so it does not show how long a user would really wait (see criterion 2):
+
+```
+{"timestamp": "2026-11-16T07:17:43+00:00", "status": "stopped", "query": "vintage graphic tee under $30", "selected_id": null, "output": null, "error": "I couldn't reach the search service, so I haven't looked for listings yet. That's a problem on my side, not with your query. Run the same query again, and if it keeps happening, check that `python mcp_server.py` starts.", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.43}
+{"timestamp": "2026-11-16T07:17:46+00:00", "status": "stopped", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": null, "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but the model's rate limit ran out before I could write the outfit and caption. Wait about a minute and run the same query again.", "model_calls": 5, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.45}
+```
 
 **What It Costs**
 
-TODO: measured per-run cost (tokens or seconds), how I measured it (10 runs, averaged), and the hundred-people-a-day arithmetic.
+Measured per run, averaged over 15 uncached runs of `serve.py`: **573.0 prompt tokens + 138.1 output tokens = 711.1 tokens, 2 model calls, and 5.27 seconds (median 2.41 seconds).** The mean is pulled up by the one 43.59 second run; the other 14 took between 1.99 and 3.35 seconds.
+
+How I measured it: I started `AI201_CACHE=0 PORT=5001 python serve.py`, sent requests with `curl` in two batches (five queries per batch), and read the `model_calls`, token and `seconds` fields from `logs/runs.jsonl`. I kept every entry with `model_calls` above 0, which gave 15 runs. The `platform sneakers size 8` query matches no listing, makes no model call, and is excluded. The token counts are the service's own counter in `generate.py`, not an estimate from the pricing page. It counts only the candidate (output) tokens the service reports, so if the model also bills hidden thinking tokens they are not in my numbers.
+
+The dollar figure uses list prices, which are not something I measured. `gemini-3.5-flash-lite` is listed at $0.30 per million input tokens and $2.50 per million output tokens (Google's Gemini API pricing page, ai.google.dev/gemini-api/docs/pricing; TODO: check these two rates on that page before submitting).
+
+```
+input:   573.0 tokens x $0.30 / 1,000,000 = $0.000172
+output:  138.1 tokens x $2.50 / 1,000,000 = $0.000345
+one run                                   = $0.000517  (about $0.0005)
+
+100 people a day, one request each:
+  tokens:   100 x 711.1 = 71,110 tokens a day
+  dollars:  100 x $0.000517 = $0.052 a day  (about $1.55 over 30 days)
+  compute:  100 x 5.27 s = 527 s a day, about 9 minutes
+            (100 x 2.41 s = 241 s, about 4 minutes, using the median)
+```
+
+Caveats: this assumes one request per person per day and only queries that find a listing (an empty search costs nothing), the sample was five queries, and if my key is on Google's free tier the real spend was $0, so the dollar figure is what it would cost at list price. Because `serve.py` handles one request at a time, those compute seconds run back to back.
 
 **Run Log and Verdicts**
 
-TODO: five criteria, three trials each, MET or MISSED, real output pasted underneath naming file and function, and for each miss the stage and the mechanism.
+Five criteria, three trials each. Each trial is a separate run of `python capstone_eval.py N` (N = 1, 2, 3) with nothing changed in between, and the table is the output of `python capstone_eval.py --summary`. Every request goes through the real `serve.py::ask` route using Flask's test client, and the real `serve.py::log_run` writes the log, redirected to `results/capstone_trial_N_log.jsonl`. The criteria were committed before any result (commit `add capstone criteria`).
+
+How the failures were triggered: an empty body, the real MCP client asking the real server for a tool that does not exist (`search_listingz`), and a fake model client that answers "API key not valid" or "429 ... retry in 29.7s". The fake client sits at the API boundary, so the real `generate()` retry loop and the real handlers run. The retry sleeps are recorded, not performed. Because these faults are deterministic, criteria 1, 2, 3 and 5 came out identical in all three trials by construction. Criterion 4 uses the live model.
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Every failing request leaves exactly one log record | 10 of 10 | 10/10 | 10/10 | 10/10 | MET |
+| 2. Rate-limit retry waits total 30 s or less | 2 of 2 | 0/2 | 0/2 | 0/2 | MISSED |
+| 3. Failure message is true to the session | 5 of 5 | 3/5 | 3/5 | 3/5 | MISSED |
+| 4. Original behaviour still works | 5/5 + 1/1 | 6/6 | 6/6 | 6/6 | MET |
+| 5. No failing request ends in a crash | 10 of 10 | 10/10 | 10/10 | 10/10 | MET |
+
+**Real output from one trial.** All blocks are from trial 1 unless marked. Produced by `capstone_eval.py::run_trial`, which calls `serve.py::ask`; log lines are written by `serve.py::log_run`.
+
+Criterion 1: the 10 failing requests each added one record. Four of the ten records (an empty body, an MCP failure, a bad key, a rate limit):
+
+```
+{"timestamp": "2026-11-16T07:17:43+00:00", "status": "rejected", "error": "no query in the request body"}
+{"timestamp": "2026-11-16T07:17:43+00:00", "status": "stopped", "query": "vintage graphic tee under $30", "selected_id": null, "output": null, "error": "I couldn't reach the search service, so I haven't looked for listings yet. That's a problem on my side, not with your query. Run the same query again, and if it keeps happening, check that `python mcp_server.py` starts.", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.43}
+{"timestamp": "2026-11-16T07:17:45+00:00", "status": "stopped", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": null, "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.", "model_calls": 1, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.47}
+{"timestamp": "2026-11-16T07:17:46+00:00", "status": "stopped", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": null, "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but the model's rate limit ran out before I could write the outfit and caption. Wait about a minute and run the same query again.", "model_calls": 5, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.45}
+```
+
+Criterion 2: the retry waits that `generate.py::generate` asked for in the two rate-limit requests (trial 1 console output):
+
+```
+Criterion 2, retry waits requested (seconds):
+  [30.7, 30.7, 30.7, 30.7, 30.7] -> total 153.5
+  [30.7, 30.7, 30.7, 30.7, 30.7] -> total 153.5
+```
+
+And one real rate-limit pushback from Gemini during trial 2's live run of criterion 4 (console output and the log record, from `generate.py::generate` and `serve.py::log_run`):
+
+```
+  [rate limit] service pushed back. Waiting 38s (attempt 1 of 5). This is the limiter doing its job, not a bug.
+{"timestamp": "2026-11-16T07:19:02+00:00", "status": "completed", "query": "silk slip dress in midi length under $40", "selected_id": "lst_013", "output": "Still can't believe I scored this 90s Silk Slip Dress — Floral, Midi Length on depop for just $30.00. I am so obsessed with layering it over a basic tee with sneakers for that effortless model off duty look, or throwing a chunky sweater over top with combat boots. It is seriously the ultimate versatile wardrobe staple for every season.", "error": null, "model_calls": 3, "prompt_tokens": 577, "output_tokens": 139, "seconds": 40.04}
+```
+
+Criterion 3: the message check for the five situations (`capstone_eval.py::_message_problems`), and the trace and log record for the fit-card-only rate limit (`agent.py::run_agent`, `serve.py::log_run`):
+
+```
+Criterion 3, message problems:
+  mcp_down     OK
+  rate_outfit  OK
+  rate_card    PROBLEM: message says the outfit was not written, but outfit_suggestion is set
+  key_outfit   OK
+  key_card     PROBLEM: message says the outfit was not written, but outfit_suggestion is set
+```
+
+```
+[4] suggest_outfit
+      in:  id=lst_002 Y2K Baby Tee — Butterfly Print
+      out: Pair it with baggy jeans.
+  [rate limit] service pushed back. Waiting 31s (attempt 1 of 5). This is the limiter doing its job, not a bug.
+  [rate limit] service pushed back. Waiting 31s (attempt 2 of 5). This is the limiter doing its job, not a bug.
+  [rate limit] service pushed back. Waiting 31s (attempt 3 of 5). This is the limiter doing its job, not a bug.
+  [rate limit] service pushed back. Waiting 31s (attempt 4 of 5). This is the limiter doing its job, not a bug.
+  [rate limit] service pushed back. Waiting 31s (attempt 5 of 5). This is the limiter doing its job, not a bug.
+[5] model rate limited
+      →    retries exhausted: stopping, no outfit or fit card
+{"timestamp": "2026-11-16T07:17:48+00:00", "status": "stopped", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": null, "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but the model's rate limit ran out before I could write the outfit and caption. Wait about a minute and run the same query again.", "model_calls": 6, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.46}
+```
+
+Criterion 4: one live matching query and the empty search (the other four matching queries also completed; see `results/capstone_trial_1.json`):
+
+```
+{"timestamp": "2026-11-16T07:17:34+00:00", "status": "completed", "query": "vintage graphic tee under $30", "selected_id": "lst_002", "output": "I am still not over scoring this Y2K Baby Tee — Butterfly Print for only $18.00 on depop. It is giving major nostalgic energy, especially when I pair it with baggy straight-leg jeans and a vintage black denim jacket. Honestly, finding pieces this good secondhand completely makes my week.", "error": null, "model_calls": 2, "prompt_tokens": 573, "output_tokens": 134, "seconds": 3.03}
+{"timestamp": "2026-11-16T07:17:43+00:00", "status": "stopped", "query": "designer ballgown size XXS under $5", "selected_id": null, "output": null, "error": "No listings matched 'designer ballgown'. Try to raise your price limit above $5.00, or drop or change the size (XXS), or use broader keywords.", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0, "seconds": 0.46}
+```
+
+Criterion 5: HTTP status of each of the 10 failing requests in trial 1, from `results/capstone_trial_1.json`.
+
+```
+TODO: run this and paste its output here:
+python -c "import json; d=json.load(open('results/capstone_trial_1.json')); [print(r['kind'], r['status']) for r in d['failures']]"
+```
+
+**Verdicts and diagnoses**
+
+| # | Verdict | How I decided |
+|---|---|---|
+| 1 | MET | 10 of 10 requests wrote exactly one record with a non-completed status and a non-empty `error`, in all three trials. |
+| 2 | MISSED | 0 of 2 in all three trials: each rate-limit request asked for 153.5 seconds of waiting against a target of 30. |
+| 3 | MISSED | 3 of 5 in all three trials: the two fit-card-step situations (`rate_card`, `key_card`) fail the check. |
+| 4 | MET | All five matching queries completed with an `error` of null and a non-empty fit card, and the ballgown query stopped with `model_calls` 0, in all three trials. |
+| 5 | MET | 10 of 10 in all three trials: no 500, the 8 requests with a query got a 200 with `error` set, and the 2 empty bodies got a 400. |
+
+*Criterion 2 (MISSED, 0 of 2 in every trial).* Stage: the retry loop in `generate.py::generate`, which takes its wait from `_retry_delay`. Mechanism: `_retry_delay` honours the retry hint the service sends (plus one second) and uses it whenever it is larger than the 1-2-4-8-16 backoff, capped at 65 seconds. The loop then sleeps that long before each of its five attempts. With a 29.7 second hint every wait is 30.7 seconds, and five of them make 153.5 seconds. My criterion put 30 seconds on the whole retry sequence, but the wait is per attempt times the number of attempts, and a single wait already exceeds 30 seconds whenever the service's hint is over 29 seconds. This is not only a harness artifact: during the live run in trial 2, Gemini really did push back, asking for a 38 second wait on the first attempt, and that one request took 40.04 seconds even though it then succeeded. The 153.5 seconds is the worst case, where the limit never clears. One limit of my test: the harness records the sleeps instead of performing them, so the `seconds` field in those log entries (0.45) understates what a user would wait, and I did not measure a real 153-second wait.
+
+*Criterion 3 (MISSED, 3 of 5 in every trial).* Stage: the two model handlers (`except ModelUnavailable` and `except RateLimited`) in `agent.py::run_agent`. Mechanism: one `try` block wraps both `suggest_outfit` and `create_fit_card`, and each handler builds its message from fixed text ("to write the outfit and caption") without looking at the session. When the failure happens in `create_fit_card`, the outfit has already been written to `session["outfit_suggestion"]`, so the message says something false, and the trace note ("no outfit or fit card") is false in the same way. The user acts on this message by re-running, and `app.py` prints only the error, so they never see the outfit that exists. The two failures are one problem with two symptoms (a bad key and a rate limit, both at the fit-card step). Limit of my check: `_message_problems` looks for the phrases "write the outfit" and "caption", so it only catches claims it knows about.
+
+*The two misses are different problems.* Criterion 2 is a timing problem in `generate.py`, and criterion 3 is a wording problem in `agent.py`, so this is not one fault with several symptoms.
+
+*Criteria met, and how strong that is.* Criterion 1 passed, but its failing requests are only failures I had already handled. Criterion 5 also passes by construction: the set contains no failure I did not handle, and `QuotaGuard` (the session request budget error in `generate.py`) is still unhandled and not in the set. The fault injection is also narrow: the MCP failure is a missing tool, not a server that crashes or hangs, and the bad key and rate limit come from a fake client, not from Google. Criterion 4 is the only criterion that touched the live model. I did not revise any criterion.
 
 **The Improvement**
 
-TODO: what I changed, which diagnosis pointed at it, and the second run log in the same format, side by side with the first.
+TODO: what I changed (one change only), which diagnosis above pointed at it, and the second run log in the same format, side by side with the first table. Run all three trials again after the change.
 
 **What's Still Broken**
 
-TODO: for each remaining miss, what I'd do and why I stopped. If I met all five, name the target I'd tighten and to what. Add the one thing I'd do first with another unit.
+TODO: for each criterion still missed after the improvement: what I'd do and why I stopped. Add the one thing I'd do first with another unit.
 
 **How I Used AI**
 

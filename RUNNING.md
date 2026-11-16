@@ -246,3 +246,42 @@ history is what shows your criteria existed before your results did.
 units.
 
 `results/` is deliberately **not** in `.gitignore`.
+
+
+---
+
+## Capstone: running FitFindr as a service (Path B, local)
+
+**Setup:** the same as "Before your first class" above (virtual environment,
+`pip install -r requirements.txt`, `.env` copied from `.env.example` with your
+`GEMINI_API_KEY`, then `python test.py` passes). Environment: Python 3.13, the
+packages pinned in `requirements.txt`, and a Gemini API key. The service calls
+the API only, so there are no model files to download.
+
+**Start it:**
+
+    PORT=5001 python serve.py
+
+On macOS, port 5000 is taken by AirPlay Receiver, so `python serve.py` fails
+with "Address already in use". Use another port as above. Where port 5000 is
+free, plain `python serve.py` works.
+
+**Send a request** (single quotes):
+
+    curl -X POST http://localhost:5001/ask -H 'Content-Type: application/json' -d '{"query": "vintage graphic tee under $30"}'
+
+**The log:** every request appends one JSON line to `logs/runs.jsonl`. The
+folder is created on first use. (The note above that `serve.py` ships with no
+logging describes the starter. I added `log_run` for the capstone.) To measure
+cost without cached answers, start with `AI201_CACHE=0`.
+
+**Run the capstone tests** (separate runs, nothing changed in between):
+
+    python capstone_eval.py 1
+    python capstone_eval.py 2
+    python capstone_eval.py 3
+    python capstone_eval.py --summary
+
+Results go to `results/capstone_trial_N.json` and
+`results/capstone_trial_N_log.jsonl`. The tests need the API key because
+criterion 4 makes real model calls.
