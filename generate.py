@@ -60,6 +60,9 @@ class ModelUnavailable(Exception):
     """
 
 
+class RateLimited(RuntimeError):
+    """Raised when the service is still rate limiting us after every retry."""
+
 # ─── Cache ───────────────────────────────────────────────────────────────────
 
 
@@ -340,7 +343,7 @@ def generate(
             )
             time.sleep(backoff)
 
-    raise RuntimeError(
+    raise RateLimited(
         f"Still rate limited after {config.MAX_RETRIES} attempts. Wait a "
         f"minute and try again — your key is fine.\nLast error: {last_error}"
     )

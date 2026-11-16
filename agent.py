@@ -18,7 +18,7 @@ import trace
 import re
 from tools import search_listings, suggest_outfit, create_fit_card
 from mcp_client import call_tool, MCPError
-from generate import ModelUnavailable
+from generate import ModelUnavailable, RateLimited
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -218,6 +218,16 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         trace.step("model unavailable",
                    note="model call failed: stopping, no outfit or fit card")
         return session 
+
+    except RateLimited:
+        session["error"] = (
+            f"I found {item['title']} (${item['price']:.2f} on {item['platform']}), "
+            f"but the model's rate limit ran out before I could write the outfit "
+            f"and caption. Wait about a minute and run the same query again."
+        )
+        trace.step("model rate limited",
+                   note="retries exhausted: stopping, no outfit or fit card")
+        return session
 
     return session
 
