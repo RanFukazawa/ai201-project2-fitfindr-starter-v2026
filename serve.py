@@ -36,6 +36,10 @@ what belongs in one — and the timing field is the one everybody skips.
 import os
 import sys
 import threading
+import json
+from datetime import datetime, timezone
+import time
+import generate
 
 # config first, and before anything that talks to the model: it loads your .env
 # and fixes the Windows console encoding for every module that imports it.
@@ -47,6 +51,15 @@ from agent import run_agent
 from utils.data_loader import get_example_wardrobe
 
 app = Flask(__name__)
+LOG_FILE = config.ROOT / "logs" / "runs.jsonl"
+
+def log_run(**fields):
+    entry = {"timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"), **fields}
+    line = json.dumps(entry, ensure_ascii=False)
+    LOG_FILE.parent.mkdir(exist_ok=True)
+    with LOG_FILE.open("a", encoding="utf-8") as f:
+        f.write(line + "\n")
+    print(line, flush=True)
 
 
 # ── one request at a time ─────────────────────────────────────────────────────
@@ -111,6 +124,7 @@ def ask():
     query = (payload.get("query") or "").strip()
     if not query:
         # 400 rather than a stack trace: the caller can act on this one.
+        log_run(status="rejected", error="no query in the request body")
         return jsonify({"error": "Send JSON with a 'query' field, e.g. "
                                  '{"query": "vintage graphic tee under $30"}'}), 400
 
@@ -139,16 +153,34 @@ def ask():
     failure = None
     session = None
     with _one_at_a_time:
+        calls_before = generate.call_count()
+        tokens_before = generate.token_counts()
+        started = time.perf_counter()
         try:
             session = run_agent(query, wardrobe)
-        except Exception as exc:  # noqa: BLE001 — a 500 with a sentence beats a hang
+        except Exception as exc:  # noqa: BLE001
             failure = f"{type(exc).__name__}: {exc}"
+        seconds = round(time.perf_counter() - started, 2)
+        model_calls = generate.call_count() - calls_before
+        tokens_after = generate.token_counts()
+        prompt_tokens = tokens_after["prompt"] - tokens_before["prompt"]
+        output_tokens = tokens_after["output"] - tokens_before["output"]
 
     # Outside the lock: building a response is not work the next caller should
     # be waiting on.
     if failure is not None:
+        log_run(status="crashed", query=query, error=failure, seconds=seconds)
         return jsonify({"error": failure}), 500
-
+    item = session["selected_item"] or {}
+    log_run(status="stopped" if session["error"] else "completed",
+            query=query,
+            selected_id=item.get("id"),
+            output=session["fit_card"],
+            error=session["error"],
+            model_calls=model_calls,
+            prompt_tokens=prompt_tokens,
+            output_tokens=output_tokens,
+            seconds=seconds)
     return jsonify(session)
 
 
