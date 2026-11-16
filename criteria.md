@@ -130,3 +130,100 @@ The empty-wardrobe branch is a plain `if`, but each try makes two model calls th
      A number you missed stays where it is, gets diagnosed, and gets a fix
      attempted. That's where the points are.
      ───────────────────────────────────────────────────────────────────────── -->
+
+
+---
+
+# Capstone criteria
+
+Written for the capstone extension (a failure-handling layer around
+`run_agent`) before any capstone results existed.
+
+**The failure set.** Where a criterion says "failing requests", it means these
+10 requests to `/ask`, sent in every trial: 2 with an empty body, 3 where the
+MCP search server can't be reached, 3 with an invalid API key, and 2 where the
+model's rate limit is exhausted (a simulated 429 whose message includes a
+"retry in 29.7s" hint, the way Gemini sends one).
+
+---
+
+## 1. Every failing request leaves exactly one log record
+
+In each trial, the 10 failing requests add exactly 10 new lines to
+`logs/runs.jsonl`, and every one of those lines has a `status` other than
+`completed` and a non-empty `error`. Target: 10 of 10 requests in each of the
+3 trials.
+
+**Why this target:**
+Earlier in this milestone a bug in my counter code returned a 500 and left no
+log entry at all, a failure that existed only as an absence. One missing line
+means I can't diagnose that run. The log write is plain code with no model in
+it, so I allow no misses, not even one in ten.
+
+---
+
+## 2. Rate-limit exhaustion doesn't keep the user waiting past 30 seconds
+
+For each of the 2 rate-limit requests in a trial, the total time the retry loop
+in `generate.py` waits before giving up (the sum of the sleeps it requests) is
+30 seconds or less. Target: 2 of 2 in each of the 3 trials.
+
+**Why this target:**
+The documented host command, `gunicorn serve:app`, kills a worker after 30
+seconds by default, so a longer wait means the user never sees my message.
+`generate.py` also honours the service's retry hint (up to 65 s per attempt,
+five attempts), so a real rate limit could keep someone waiting minutes. I
+picked 30 s because of that worker timeout, not a stricter number, because
+some waiting is legitimate: the limit is per minute.
+
+---
+
+## 3. The failure message is true to what is in the session
+
+Across 5 situations (MCP unreachable; rate limit at the outfit step; rate limit
+at the fit-card step; invalid key at the outfit step; invalid key at the
+fit-card step), the message may say the outfit or caption was not written only
+when the matching session field (`outfit_suggestion`, `fit_card`) is `None`,
+and may name a listing only when `session["selected_item"]` is set. Target: 5
+of 5 situations.
+
+**Why this target:**
+The messages are fixed text in my code, with no model involved, so a mismatch
+is deterministic and a real bug, not bad luck. There are only five situations,
+so allowing one miss would excuse a message that tells the user something
+false. A wrong message matters because the user acts on it: if it says nothing
+was written when an outfit exists, they re-run and pay for it again.
+
+---
+
+## 4. The original behaviour still works
+
+Five queries that matched in unit 4 (`vintage graphic tee under $30`,
+`90s track jacket in size M`, `silk slip dress in midi length under $40`,
+`denim jacket under $50`, `graphic hoodie`) each complete with `error` set to
+`None` and a non-empty `fit_card`, and `designer ballgown size XXS under $5`
+still stops before `suggest_outfit` with `model_calls` 0 in the log. Target: 5
+of 5 matching queries and 1 of 1 empty search, in each trial.
+
+**Why this target:**
+I changed the code around the search and model calls in `run_agent`, so this
+checks that I didn't break what it extends. In unit 4, 45 of 45 matching tries
+completed, so a miss would point to my change, not to normal model flakiness.
+That is why this target is 5 of 5, not the 4 of 5 I used in unit 3.
+
+---
+
+## 5. No failing request ends in a crash
+
+For each trial's 10 failing requests: none returns HTTP 500, and none lets an
+exception propagate out of `run_agent`. The 8 requests that carry a query
+return HTTP 200 with `session["error"]` set; the 2 empty-body requests return
+400. Target: 10 of 10 requests in each of the 3 trials.
+
+**Why this target:**
+Before this unit, an unreachable MCP server and an exhausted rate limit both
+ended in a stack trace. Each handler I added is a plain `try/except`, so any
+miss is a bug in the handler, not chance. A 500 is the one outcome the user
+can do nothing about. A weak point: the set contains only failures I handled,
+so passing doesn't mean no crash is possible. `QuotaGuard` in `generate.py` is
+still unhandled and isn't in the set.
