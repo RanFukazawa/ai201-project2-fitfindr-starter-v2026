@@ -17,7 +17,7 @@ import config
 import trace
 import re
 from tools import search_listings, suggest_outfit, create_fit_card
-from mcp_client import call_tool
+from mcp_client import call_tool, MCPError
 from generate import ModelUnavailable
 
 
@@ -163,11 +163,22 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     # Search (via MCP)
     count += 1
     trace.check_iterations(count)
-    session["search_results"] = call_tool("search_listings", {
-        "description": parsed["description"],
-        "size":  parsed["size"],
-        "max_price": parsed["max_price"],
-    })
+    try:
+        session["search_results"] = call_tool("search_listings", {
+            "description": parsed["description"],
+            "size":  parsed["size"],
+            "max_price": parsed["max_price"],
+        })
+    except MCPError as exc:
+        session["error"] = (
+            "I couldn't reach the search service, so I haven't looked for "
+            "listings yet. That's a problem on my side, not with your query. "
+            "Run the same query again, and if it keeps happening, check that "
+            "`python mcp_server.py` starts."
+        )
+        trace.step("search_listings (via MCP)", inputs=str(parsed),
+                   note=f"MCP call failed: {str(exc).splitlines()[0]}")
+        return session
     results = session["search_results"]
     trace.step("search_listings (via MCP)", inputs=str(parsed),
                 returned=results,
