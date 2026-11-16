@@ -10,7 +10,7 @@
       2
     ],
     "3": [
-      3,
+      5,
       5
     ],
     "4": [
@@ -30,16 +30,16 @@
       "error": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:18:20+00:00",
+          "timestamp": "2026-11-16T07:34:15+00:00",
           "status": "completed",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
-          "output": "Scored this Y2K Baby Tee — Butterfly Print on depop for only $18.00 and I am already obsessed with the early 2000s energy. I am styling it with baggy straight-leg jeans, chunky white sneakers, and a brown leather belt for the ultimate throwback fit. Throwing on my vintage black denim jacket over top makes the whole outfit complete for cooler days.",
+          "output": "Scrolling on depop late at night finally paid off because I just scored the ultimate Y2K Baby Tee — Butterfly Print for only $18.00. I am so obsessed with how it looks tucked into baggy straight-leg jeans with a chunky belt and white sneakers. Throwing on a vintage black denim jacket over top makes the whole outfit feel straight out of 2002.",
           "error": null,
           "model_calls": 2,
-          "prompt_tokens": 557,
-          "output_tokens": 137,
-          "seconds": 3.19
+          "prompt_tokens": 553,
+          "output_tokens": 130,
+          "seconds": 3.9
         }
       ]
     },
@@ -50,16 +50,16 @@
       "error": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:18:22+00:00",
+          "timestamp": "2026-11-16T07:34:18+00:00",
           "status": "completed",
           "query": "90s track jacket in size M",
           "selected_id": "lst_004",
-          "output": "Found the ultimate 90s Track Jacket — Navy/White Stripe on Poshmark for $45.00 and I am already obsessed with it. I cannot wait to style it with a white ribbed tank and baggy jeans for that effortless off-duty model look. It is also going to look so good layered over the tank with wide-leg khakis when the weather cools down.",
+          "output": "I scored this amazing 90s Track Jacket — Navy/White Stripe on poshmark for only $45.00 and I am already obsessed with it. I am planning to style it with a white ribbed tank and baggy jeans for an effortless sporty vibe, or with wide-leg trousers for some retro streetwear energy. I cannot wait to wear this piece out.",
           "error": null,
           "model_calls": 2,
-          "prompt_tokens": 567,
-          "output_tokens": 140,
-          "seconds": 1.83
+          "prompt_tokens": 577,
+          "output_tokens": 145,
+          "seconds": 2.14
         }
       ]
     },
@@ -70,16 +70,16 @@
       "error": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:02+00:00",
+          "timestamp": "2026-11-16T07:34:20+00:00",
           "status": "completed",
           "query": "silk slip dress in midi length under $40",
           "selected_id": "lst_013",
-          "output": "Still can't believe I scored this 90s Silk Slip Dress — Floral, Midi Length on depop for just $30.00. I am so obsessed with layering it over a basic tee with sneakers for that effortless model off duty look, or throwing a chunky sweater over top with combat boots. It is seriously the ultimate versatile wardrobe staple for every season.",
+          "output": "Found this absolute dream of a 90s Silk Slip Dress — Floral, Midi Length scrolling through depop and I am obsessed. It was only $30.00 and the fabric literally drapes like liquid. I cannot wait to throw an oversized crewneck and chunky sneakers over it for that lazy weekend grunge look.",
           "error": null,
-          "model_calls": 3,
-          "prompt_tokens": 577,
-          "output_tokens": 139,
-          "seconds": 40.04
+          "model_calls": 2,
+          "prompt_tokens": 593,
+          "output_tokens": 145,
+          "seconds": 2.66
         }
       ]
     },
@@ -90,16 +90,16 @@
       "error": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:04+00:00",
+          "timestamp": "2026-11-16T07:35:02+00:00",
           "status": "completed",
           "query": "denim jacket under $50",
           "selected_id": "lst_007",
-          "output": "Scored this cropped light wash denim jacket on Poshmark for $42.00 and I am already obsessed with how versatile it is. I cannot wait to wear it with a white ribbed tank and baggy straight-leg jeans for an easy double denim look. It also has the exact streetwear vibe I need for layering over an oversized crewneck and khaki trousers.",
+          "output": "Scored this light wash, cropped Denim Jacket on Poshmark for just $42.00 and I am already obsessed. I cannot wait to wear it with a white ribbed tank top and baggy straight leg dark wash jeans for the ultimate double denim look. It would also look so cool layered over an oversized grey crewneck sweatshirt with wide leg khaki trousers and black combat boots.",
           "error": null,
-          "model_calls": 2,
-          "prompt_tokens": 561,
-          "output_tokens": 138,
-          "seconds": 2.45
+          "model_calls": 3,
+          "prompt_tokens": 565,
+          "output_tokens": 145,
+          "seconds": 42.08
         }
       ]
     },
@@ -110,16 +110,16 @@
       "error": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:06+00:00",
+          "timestamp": "2026-11-16T07:35:05+00:00",
           "status": "completed",
           "query": "graphic hoodie",
           "selected_id": "lst_015",
-          "output": "Finally scored the ultimate vintage graphic hoodie on depop for just $26.00 and I am obsessed with the faded black wash. It has the exact lived-in look I have been searching for to pull off that effortless streetwear style. Cannot wait to throw this on with baggy denim and chunky sneakers for my next weekend coffee run.",
+          "output": "Finally scored this vintage graphic hoodie on depop for just $26.00 and I am obsessed with the faded black wash. It honestly pulls together every baggy straight-leg jean and chunky sneaker outfit I have been wanting to try. Planning to throw a denim jacket over it with combat boots next for that perfect grunge look.",
           "error": null,
           "model_calls": 2,
-          "prompt_tokens": 549,
-          "output_tokens": 122,
-          "seconds": 2.1
+          "prompt_tokens": 554,
+          "output_tokens": 125,
+          "seconds": 3.19
         }
       ]
     }
@@ -131,7 +131,7 @@
     "error": "No listings matched 'designer ballgown'. Try to raise your price limit above $5.00, or drop or change the size (XXS), or use broader keywords.",
     "log_lines": [
       {
-        "timestamp": "2026-11-16T07:19:07+00:00",
+        "timestamp": "2026-11-16T07:35:06+00:00",
         "status": "stopped",
         "query": "designer ballgown size XXS under $5",
         "selected_id": null,
@@ -140,7 +140,7 @@
         "model_calls": 0,
         "prompt_tokens": 0,
         "output_tokens": 0,
-        "seconds": 0.45
+        "seconds": 0.46
       }
     ]
   },
@@ -154,7 +154,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:07+00:00",
+          "timestamp": "2026-11-16T07:35:06+00:00",
           "status": "rejected",
           "error": "no query in the request body"
         }
@@ -171,7 +171,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:07+00:00",
+          "timestamp": "2026-11-16T07:35:06+00:00",
           "status": "rejected",
           "error": "no query in the request body"
         }
@@ -188,31 +188,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:07+00:00",
-          "status": "stopped",
-          "query": "vintage graphic tee under $30",
-          "selected_id": null,
-          "output": null,
-          "error": "I couldn't reach the search service, so I haven't looked for listings yet. That's a problem on my side, not with your query. Run the same query again, and if it keeps happening, check that `python mcp_server.py` starts.",
-          "model_calls": 0,
-          "prompt_tokens": 0,
-          "output_tokens": 0,
-          "seconds": 0.43
-        }
-      ],
-      "sleeps_requested": [],
-      "sleep_total_s": 0
-    },
-    {
-      "kind": "mcp_down",
-      "status": 200,
-      "error": "I couldn't reach the search service, so I haven't looked for listings yet. That's a problem on my side, not with your query. Run the same query again, and if it keeps happening, check that `python mcp_server.py` starts.",
-      "selected_title": null,
-      "outfit_suggestion": null,
-      "fit_card": null,
-      "log_lines": [
-        {
-          "timestamp": "2026-11-16T07:19:08+00:00",
+          "timestamp": "2026-11-16T07:35:06+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": null,
@@ -236,7 +212,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:08+00:00",
+          "timestamp": "2026-11-16T07:35:07+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": null,
@@ -245,7 +221,31 @@
           "model_calls": 0,
           "prompt_tokens": 0,
           "output_tokens": 0,
-          "seconds": 0.44
+          "seconds": 0.45
+        }
+      ],
+      "sleeps_requested": [],
+      "sleep_total_s": 0
+    },
+    {
+      "kind": "mcp_down",
+      "status": 200,
+      "error": "I couldn't reach the search service, so I haven't looked for listings yet. That's a problem on my side, not with your query. Run the same query again, and if it keeps happening, check that `python mcp_server.py` starts.",
+      "selected_title": null,
+      "outfit_suggestion": null,
+      "fit_card": null,
+      "log_lines": [
+        {
+          "timestamp": "2026-11-16T07:35:07+00:00",
+          "status": "stopped",
+          "query": "vintage graphic tee under $30",
+          "selected_id": null,
+          "output": null,
+          "error": "I couldn't reach the search service, so I haven't looked for listings yet. That's a problem on my side, not with your query. Run the same query again, and if it keeps happening, check that `python mcp_server.py` starts.",
+          "model_calls": 0,
+          "prompt_tokens": 0,
+          "output_tokens": 0,
+          "seconds": 0.46
         }
       ],
       "sleeps_requested": [],
@@ -260,7 +260,31 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:08+00:00",
+          "timestamp": "2026-11-16T07:35:08+00:00",
+          "status": "stopped",
+          "query": "vintage graphic tee under $30",
+          "selected_id": "lst_002",
+          "output": null,
+          "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
+          "model_calls": 1,
+          "prompt_tokens": 0,
+          "output_tokens": 0,
+          "seconds": 0.46
+        }
+      ],
+      "sleeps_requested": [],
+      "sleep_total_s": 0
+    },
+    {
+      "kind": "key_outfit",
+      "status": 200,
+      "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
+      "selected_title": "Y2K Baby Tee — Butterfly Print",
+      "outfit_suggestion": null,
+      "fit_card": null,
+      "log_lines": [
+        {
+          "timestamp": "2026-11-16T07:35:08+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
@@ -284,7 +308,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:09+00:00",
+          "timestamp": "2026-11-16T07:35:09+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
@@ -293,31 +317,7 @@
           "model_calls": 1,
           "prompt_tokens": 0,
           "output_tokens": 0,
-          "seconds": 0.46
-        }
-      ],
-      "sleeps_requested": [],
-      "sleep_total_s": 0
-    },
-    {
-      "kind": "key_outfit",
-      "status": 200,
-      "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
-      "selected_title": "Y2K Baby Tee — Butterfly Print",
-      "outfit_suggestion": null,
-      "fit_card": null,
-      "log_lines": [
-        {
-          "timestamp": "2026-11-16T07:19:09+00:00",
-          "status": "stopped",
-          "query": "vintage graphic tee under $30",
-          "selected_id": "lst_002",
-          "output": null,
-          "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
-          "model_calls": 1,
-          "prompt_tokens": 0,
-          "output_tokens": 0,
-          "seconds": 0.46
+          "seconds": 0.44
         }
       ],
       "sleeps_requested": [],
@@ -332,7 +332,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:10+00:00",
+          "timestamp": "2026-11-16T07:35:09+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
@@ -341,7 +341,7 @@
           "model_calls": 5,
           "prompt_tokens": 0,
           "output_tokens": 0,
-          "seconds": 0.45
+          "seconds": 0.46
         }
       ],
       "sleeps_requested": [
@@ -362,7 +362,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:10+00:00",
+          "timestamp": "2026-11-16T07:35:10+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
@@ -371,7 +371,7 @@
           "model_calls": 5,
           "prompt_tokens": 0,
           "output_tokens": 0,
-          "seconds": 0.43
+          "seconds": 0.47
         }
       ],
       "sleeps_requested": [
@@ -394,7 +394,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:11+00:00",
+          "timestamp": "2026-11-16T07:35:10+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": null,
@@ -418,7 +418,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:11+00:00",
+          "timestamp": "2026-11-16T07:35:10+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
@@ -442,22 +442,22 @@
     {
       "kind": "rate_card",
       "status": 200,
-      "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but the model's rate limit ran out before I could write the outfit and caption. Wait about a minute and run the same query again.",
+      "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), wrote an outfit suggestion, but the model's rate limit ran out before I could write the caption. Wait about a minute and run the same query again.",
       "selected_title": "Y2K Baby Tee — Butterfly Print",
       "outfit_suggestion": "Pair it with baggy jeans.",
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:12+00:00",
+          "timestamp": "2026-11-16T07:35:11+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
           "output": null,
-          "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but the model's rate limit ran out before I could write the outfit and caption. Wait about a minute and run the same query again.",
+          "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), wrote an outfit suggestion, but the model's rate limit ran out before I could write the caption. Wait about a minute and run the same query again.",
           "model_calls": 6,
           "prompt_tokens": 0,
           "output_tokens": 0,
-          "seconds": 0.46
+          "seconds": 0.43
         }
       ],
       "sleeps_requested": [
@@ -478,7 +478,7 @@
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:12+00:00",
+          "timestamp": "2026-11-16T07:35:11+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
@@ -487,7 +487,7 @@
           "model_calls": 1,
           "prompt_tokens": 0,
           "output_tokens": 0,
-          "seconds": 0.45
+          "seconds": 0.44
         }
       ],
       "sleeps_requested": [],
@@ -496,18 +496,18 @@
     {
       "kind": "key_card",
       "status": 200,
-      "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
+      "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), wrote an outfit suggestion, but couldn't reach the model to write the caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
       "selected_title": "Y2K Baby Tee — Butterfly Print",
       "outfit_suggestion": "Pair it with baggy jeans.",
       "fit_card": null,
       "log_lines": [
         {
-          "timestamp": "2026-11-16T07:19:12+00:00",
+          "timestamp": "2026-11-16T07:35:12+00:00",
           "status": "stopped",
           "query": "vintage graphic tee under $30",
           "selected_id": "lst_002",
           "output": null,
-          "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), but couldn't reach the model to write the outfit and caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
+          "error": "I found Y2K Baby Tee — Butterfly Print ($18.00 on depop), wrote an outfit suggestion, but couldn't reach the model to write the caption. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com. Once that's fixed, run the same query again.",
           "model_calls": 2,
           "prompt_tokens": 0,
           "output_tokens": 0,

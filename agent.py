@@ -93,6 +93,12 @@ def _no_results_message(parsed: dict) -> str:
     return (f"No listings matched '{parsed['description']}'. Try to "
             + ", or ".join(tips) + ".")
 
+def _what_is_missing(session: dict):
+    """What the model steps still owe, read from the session, not assumed."""
+    if session["outfit_suggestion"] is None:
+        return "the outfit and caption", "", "no outfit or fit card"
+    return "the caption", "wrote an outfit suggestion, ", "outfit kept, no fit card"
+
 def run_agent(query: str, wardrobe: dict) -> dict:
     """
     Run the loop once and return the finished session.
@@ -210,23 +216,25 @@ def run_agent(query: str, wardrobe: dict) -> dict:
                 returned=session["fit_card"])
     
     except ModelUnavailable as exc:
+        missing, done, note = _what_is_missing(session)
         session["error"] = (
             f"I found {item['title']} (${item['price']:.2f} on {item['platform']}), "
-            f"but couldn't reach the model to write the outfit and caption. {exc} "
+            f"{done}but couldn't reach the model to write {missing}. {exc} "
             f"Once that's fixed, run the same query again."
         )
         trace.step("model unavailable",
-                   note="model call failed: stopping, no outfit or fit card")
-        return session 
+                   note=f"model call failed: stopping, {note}")
+        return session
 
     except RateLimited:
+        missing, done, note = _what_is_missing(session)
         session["error"] = (
             f"I found {item['title']} (${item['price']:.2f} on {item['platform']}), "
-            f"but the model's rate limit ran out before I could write the outfit "
-            f"and caption. Wait about a minute and run the same query again."
+            f"{done}but the model's rate limit ran out before I could write {missing}. "
+            f"Wait about a minute and run the same query again."
         )
         trace.step("model rate limited",
-                   note="retries exhausted: stopping, no outfit or fit card")
+                   note=f"retries exhausted: stopping, {note}")
         return session
 
     return session
