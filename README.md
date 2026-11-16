@@ -624,3 +624,49 @@ are problems I found that the five criteria don't catch.
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+
+
+---
+
+## Capstone
+
+**What This Extends**
+
+FitFindr, my thrifting agent from units 3 and 4: the planning loop in `agent.py::run_agent`, the three tools, and `search_listings` called through MCP. What is new is a failure-handling layer around that loop, so that a failure in the MCP search step or in the model steps ends the run with a clear message and a log record instead of a stack trace.
+
+**The Shape**
+
+Shape B, harden against failure. Today `run_agent` handles an empty search and `ModelUnavailable` (a bad API key). Two other failures I found in unit 4 and left unfixed: if `mcp_server.py` cannot start, `call_tool` raises `MCPError` from the search step and the user sees a stack trace, and when the model's rate limit is used up, `generate()` raises a `RuntimeError` after five retries that my handler doesn't catch. I am adding one layer in `run_agent` that catches these, puts an actionable message in `session["error"]`, stops the run cleanly, and records the failure. The run path (Path B, local) and the structured log are required in every shape, so I am building them alongside it.
+
+Out of scope:
+- I am not moving `suggest_outfit` or `create_fit_card` onto MCP. Each MCP call starts a fresh server process, which would reset the pacing counters in `generate.py`.
+- I am not changing the prompts: no fix for the "Pair" openers and no price-in-words check or retry.
+- I am not touching `_parse_query` or its limits (bare "M", `size US 9`, `W30 L30`).
+
+**Running It**
+
+TODO: Path B (local with logs), one line saying so, and a pointer to `RUNNING.md`. If I try to host it and switch, say so here.
+
+**Instrumentation**
+
+TODO: what each log record holds (timestamp, input, output, duration, error field, and anything else), then at least ten entries pasted as text, plus at least one failed run.
+
+**What It Costs**
+
+TODO: measured per-run cost (tokens or seconds), how I measured it (10 runs, averaged), and the hundred-people-a-day arithmetic.
+
+**Run Log and Verdicts**
+
+TODO: five criteria, three trials each, MET or MISSED, real output pasted underneath naming file and function, and for each miss the stage and the mechanism.
+
+**The Improvement**
+
+TODO: what I changed, which diagnosis pointed at it, and the second run log in the same format, side by side with the first.
+
+**What's Still Broken**
+
+TODO: for each remaining miss, what I'd do and why I stopped. If I met all five, name the target I'd tighten and to what. Add the one thing I'd do first with another unit.
+
+**How I Used AI**
+
+TODO: two specific moments for this unit: what I asked, what I got, what I changed.
